@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGE-X | AI Facial Age Prediction — Research & Experimentation Console</title>
+  <meta name="description" content="Technical research, dataset evolution, and multi-model experimentation console for AI-powered facial age estimation across ages 1 to 100.">
+  
+  <!-- Modern Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- Strict 50/30/20 Design System CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ========================================================================= -->
+  <!-- COMPACT HEADER & RESEARCH NAVIGATION                                     -->
+  <!-- ========================================================================= -->
+  <header class="site-header">
+    <div class="container header-inner">
+      
+      <!-- Brand & Meta -->
+      <div class="brand-wrapper">
+        <div class="brand-badge">AX</div>
+        <div class="brand-meta">
+          <div class="brand-title">
+            <span class="brand-accent">AGE-X</span> AI Facial Age Prediction
+          </div>
+          <div class="brand-subtitle">Research & Experimentation Console</div>
+        </div>
+      </div>
+
+      <!-- Navigation Links (Scroll Spys) -->
+      <nav class="header-nav">
+        <a href="#overview" class="nav-link active">Overview</a>
+        <a href="#challenge" class="nav-link">Challenge</a>
+        <a href="#dataset" class="nav-link">Dataset</a>
+        <a href="#tournament" class="nav-link">Experiments</a>
+        <a href="#performance" class="nav-link">Performance</a>
+        <a href="#architecture" class="nav-link">Architecture</a>
+        <a href="#insights" class="nav-link">Insights</a>
+      </nav>
+
+      <!-- System Status & Demo CTA -->
+      <div class="header-actions">
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span>CUDA READY</span>
+        </div>
+        <button class="btn btn-primary" data-route="/demo">
+          START LIVE DEMO →
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CONTENT CONTAINER                                                   -->
+  <!-- ========================================================================= -->
+  <main class="main-content">
+
+    <!-- 1. HERO / EXECUTIVE SUMMARY -->
+    <section id="overview" class="section section-hero">
+      <div class="container">
+        
+        <div class="hero-header">
+          <div class="badge-research">
+            <span>●</span> MODEL DEVELOPMENT COMPLETE
+          </div>
+          <h1 class="hero-title">From Dataset Imbalance to Age-Aware Prediction</h1>
+          <p class="hero-subtitle">
+            An experimental journey toward robust facial age estimation across the full 1–100 age range. 
+            Investigating EfficientNetV2-S backbones, 100-way discrete DEX softmax distributions, Hybrid multi-task anchors, and 2-View Mirror Test-Time Augmentation across 276.2K demographic faces.
+          </p>
+        </div>
+
+        <!-- 4 KPI Cards Grid -->
+        <div class="kpi-grid" id="kpi-container">
+          <!-- Dynamically populated from data.js -->
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- 2. THE CHALLENGE (PROBLEM STATEMENT) -->
+    <section id="challenge" class="section">
+      <div class="container">
+        
+        <div class="section-header">
+          <div class="section-tag">01 / Problem Statement</div>
+          <h2 class="section-title">The Challenge</h2>
+          <p class="section-subtitle">
+            Why traditional deep regression fails when predicting human age from unconstrained in-the-wild facial images.
+          </p>
+        </div>
+
+        <!-- 3 Problem Cards -->
+        <div class="problem-grid" id="problem-container">
+          <!-- Dynamically populated from data.js -->
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- 3. DATASET EVOLUTION & DEMOGRAPHIC DISTRIBUTION -->
+    <section id="dataset" class="section">
+      <div class="container">
+        
+        <div class="section-header">
+          <div class="section-tag">02 / Corpus Engineering</div>
+          <h2 class="section-title">Dataset Evolution</h2>
+          <p class="section-subtitle">
+            Progressive corpus expansion from 210K raw faces to the 276.2K balanced master evaluation corpus.
+          </p>
+        </div>
+
+        <!-- Pipeline Flow -->
+        <div class="pipeline-flow" id="pipeline-container">
+          <!-- Dynamically populated from data.js -->
+        </div>
+
+        <!-- Charts Grid (Demographic Cohorts + Age 1-100 Continuous Curve) -->
+        <div class="grid-12">
+          
+          <!-- Cohort Distribution Bar Chart -->
+          <div class="col-6">
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3 class="chart-title">Corpus Demographic Distribution</h3>
+                <span class="badge-tag">Sample Counts</span>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="chart-demographics"></canvas>
+              </div>
+              <div class="chart-annotation">
+                <span>Insight:</span> Majority concentration occurs in the 20–45 range, while the 76–100 cohort remains data-sparse.
+              </div>
+            </div>
+          </div>
+
+          <!-- Age 1-100 Continuous Density Area Chart -->
+          <div class="col-6">
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3 class="chart-title">Dataset Age Density Distribution (Ages 1–100)</h3>
+                <span class="badge-tag">Continuous Curve</span>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="chart-age-dist"></canvas>
+              </div>
+              <div class="chart-annotation">
+                <span>Observation:</span> Rare-age coverage becomes increasingly sparse beyond 75 years.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- 4. MODEL TOURNAMENT & PROGRESSIVE EXPERIMENTATION -->
+    <section id="tournament" class="section">
+      <div class="container">
+        
+        <div class="section-header">
+          <div class="section-tag">03 / Model Development</div>
+          <h2 class="section-title">Model Tournament</h2>
+          <p class="section-subtitle">
+            Progressive experimentation across architectures, heads, fine-tuning trials, and dual ensemble strategies evaluated on held-out test splits.
+          </p>
+        </div>
+
+        <div class="tournament-layout">
+          
+          <!-- Tournament Horizontal Bar Chart -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Model Tournament: MAE Across Iterations</h3>
+              <span class="badge-tag">Lower MAE is Better</span>
+            </div>
+            <div class="chart-canvas-wrapper tall">
+              <canvas id="chart-tournament"></canvas>
+            </div>
+            <div class="chart-annotation">
+              <span>Champion:</span> <code>DUAL-ENS (DEX + Hybrid)</code> achieved <strong>4.18 yrs MAE</strong> and <strong>82.0% Acc (±7 Yrs)</strong>.
+            </div>
+          </div>
+
+          <!-- Tournament Leaderboard Table -->
+          <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); background-color: var(--surface-secondary);">
+              <h3 style="font-size: 15px; font-weight: 650; color: var(--text-primary);">Tournament Leaderboard</h3>
+            </div>
+            <div class="tournament-table-wrapper" style="flex-grow: 1;">
+              <table class="tech-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Architecture</th>
+                    <th>Backbone</th>
+                    <th>MAE</th>
+                    <th>±7 Yrs</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tournament-table-body">
+                  <!-- Dynamically populated from data.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Chronological Research Journey Timeline -->
+        <div style="margin-top: var(--space-2xl);">
+          <h3 style="font-size: 18px; font-weight: 650; margin-bottom: var(--space-md); color: var(--text-primary);">
+            Chronological Research Timeline
+          </h3>
+          <div class="timeline-track" id="timeline-container">
+            <!-- Dynamically populated from data.js -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- 5. TRAINING CONVERGENCE & DEMOGRAPHIC PERFORMANCE -->
+    <section id="performance" class="section">
+      <div class="container">
+        
+        <div class="section-header">
+          <div class="section-tag">04 / Empirical Evaluation</div>
+          <h2 class="section-title">Where Does the Model Perform Best?</h2>
+          <p class="section-subtitle">
+            Rigorous validation convergence curves across 5 epochs and granular age-cohort breakdown across lifespan demographics.
+          </p>
+        </div>
+
+        <div class="grid-12" style="margin-bottom: var(--space-xl);">
+          
+          <!-- Training Convergence Chart with Detailed Epoch Breakdown -->
+          <div class="col-6">
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3 class="chart-title">Training Convergence (5 Epochs)</h3>
+                <span class="badge-tag">Loss & MAE Curve</span>
+              </div>
+              <div class="chart-canvas-wrapper tall">
+                <canvas id="chart-convergence"></canvas>
+              </div>
+              <!-- Epoch-by-Epoch Metric Cards Container -->
+              <div id="convergence-details-container">
+                <!-- Dynamically populated from data.js -->
+              </div>
+              <div class="chart-annotation">
+                <span>Validation Metric:</span> Primary selection based on Validation MAE (4.64 yrs single / 4.18 yrs Dual Ensemble).
+              </div>
+            </div>
+          </div>
+
+          <!-- Demographic MAE vs Accuracy Grouped Chart -->
+          <div class="col-6">
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3 class="chart-title">Age-Group MAE vs Accuracy (%)</h3>
+                <span class="badge-tag">Validation Cohorts</span>
+              </div>
+              <div class="chart-canvas-wrapper tall">
+                <canvas id="chart-demographic-perf"></canvas>
+              </div>
+              <div class="chart-annotation">
+                <span>Finding:</span> Exceptional performance in 01–12 (2.63 yrs) and 20–45 cohorts (sub-4.0 yrs).
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Cohort Granular Table & Tolerance Breakdown -->
+        <div class="demographic-grid">
+          
+          <!-- Granular Cohort Table -->
+          <div class="cohort-table-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+              <h3 style="font-size: 15px; font-weight: 650; color: var(--text-primary);">Demographic Cohort Breakdown</h3>
+              <span class="badge-tag">Locked Validation Split (16,258 faces)</span>
+            </div>
+            <div id="demographic-table-body">
+              <!-- Dynamically populated from data.js -->
+            </div>
+          </div>
+
+          <!-- Stepped Horizontal Error Tolerance Bars -->
+          <div class="card">
+            <div style="margin-bottom: var(--space-md);">
+              <h3 style="font-size: 15px; font-weight: 650; color: var(--text-primary);">Prediction Tolerance</h3>
+              <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                Cumulative accuracy margin across demographic population.
+              </p>
+            </div>
+            <div class="tolerance-wrapper" id="tolerance-container">
+              <!-- Dynamically populated from data.js -->
+            </div>
+            <div style="margin-top: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--border-subtle); font-size: 12px; color: var(--text-muted);">
+              <strong style="color: var(--accent-primary);">82.00%</strong> of predictions fall within ±7 years, and <strong style="color: #10B981;">67.00%</strong> within ±5 years.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- 6. MODEL ARCHITECTURE & PIPELINE (5-STAGE DUAL ENSEMBLE FLOWCHART) -->
+    <section id="architecture" class="section">
+      <div class="container">
+        
+        <div class="section-header">
+          <div class="section-tag">05 / System Architecture</div>
+          <h2 class="section-title">Model Architecture & Pipeline</h2>
+          <p class="section-subtitle">
+            5-Stage Dual Combined Ensemble combining Model A (DEX Head) and Model B (Hybrid Head) with 2-View Mirror TTA.
+          </p>
+        </div>
+
+        <!-- 5-Stage Flowchart Matching User Architecture Diagram -->
+        <div class="flowchart-wrapper">
+          
+          <!-- Top Input Node -->
+          <div class="fc-node highlight">Input Face Image</div>
+          
+          <div class="fc-arrow-down"></div>
+
+          <!-- 1. Preprocessing Stage Box -->
+          <div class="fc-stage-box">
+            <div class="fc-stage-title">1. Preprocessing</div>
+            <div class="fc-v-stack">
+              <div class="fc-node">Face Detection and Crop</div>
+              <div class="fc-arrow-down"></div>
+              <div class="fc-node">Resize to 320x320</div>
+              <div class="fc-arrow-down"></div>
+              <div class="fc-node highlight">Create Original and Flipped Images (2-View TTA)</div>
+            </div>
+          </div>
+
+          <div class="fc-arrow-down"></div>
+
+          <!-- Split: 2. Model A & 3. Model B -->
+          <div class="fc-split-container">
+            
+            <!-- 2. Model A Box -->
+            <div class="fc-branch-box model-a">
+              <div class="fc-stage-title" style="color: var(--accent-primary);">2. Model A</div>
+              <div class="fc-v-stack">
+                <div class="fc-node">EfficientNetV2-S</div>
+                <div class="fc-arrow-down"></div>
+                <div class="fc-node highlight">DEX Head (100-Way Softmax)</div>
+                <div class="fc-arrow-down"></div>
+                <div class="fc-node">Expected Age</div>
+              </div>
+            </div>
+
+            <!-- 3. Model B Box -->
+            <div class="fc-branch-box model-b">
+              <div class="fc-stage-title" style="color: #60A5FA;">3. Model B</div>
+              <div class="fc-v-stack">
+                <div class="fc-node">EfficientNetV2-S</div>
+                <div class="fc-arrow-down"></div>
+                <div class="fc-node highlight" style="border-color: #3B82F6; color: #60A5FA;">Hybrid Head (Dual Loss)</div>
+                <div class="fc-arrow-down"></div>
+                <div class="fc-node">Expected Age</div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="fc-arrow-down"></div>
+
+          <!-- 4. Ensemble Stage Box -->
+          <div class="fc-stage-box">
+            <div class="fc-stage-title">4. Ensemble</div>
+            <div class="fc-v-stack">
+              <div class="fc-output-grid">
+                <div class="fc-node">Average Model A Predictions<br><small style="font-size: 11px; color: var(--text-muted);">(Orig + Flip)</small></div>
+                <div class="fc-node">Average Model B Predictions<br><small style="font-size: 11px; color: var(--text-muted);">(Orig + Flip)</small></div>
+              </div>
+              <div class="fc-arrow-down"></div>
+              <div class="fc-node highlight" style="width: 100%; max-width: 440px; font-size: 15px;">
+                Final Age = Average of Model A and B
+              </div>
+            </div>
+          </div>
+
+          <div class="fc-arrow-down"></div>
+
+          <!-- 5. Output Stage Box -->
+          <div class="fc-stage-box" style="max-width: 460px;">
+            <div class="fc-stage-title" style="color: #10B981;">5. Output</div>
+            <div class="fc-output-grid">
+              <div class="fc-node highlight" style="border-color: #10B981; color: #10B981; font-weight: 700;">
+                Predicted Age
+              </div>
+              <div class="fc-node highlight" style="border-color: #10B981; color: #10B981; font-weight: 700;">
+                Age Group Cohort
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Why These Models? (4 Clean Technical Cards) -->
+        <div>
+          <h3 style="font-size: 18px; font-weight: 650; margin-bottom: var(--space-md); color: var(--text-primary);">
+            Why This Architecture?
+          </h3>
+          <div class="why-grid" id="why-container">
+            <!-- Dynamically populated from data.js -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- 7. RESEARCH INSIGHTS & CURRENT LIMITATIONS -->
+    <section id="insights" class="section">
+      <div class="container">
+        
+        <div class="section-header">
+          <div class="section-tag">06 / Empirical Learnings</div>
+          <h2 class="section-title">What We Learned</h2>
+          <p class="section-subtitle">
+            Key research insights and honest scientific limitations derived from rigorous held-out experimentation.
+          </p>
+        </div>
+
+        <!-- 4 Research Insight Cards -->
+        <div class="insights-grid" id="insights-container" style="margin-bottom: var(--space-2xl);">
+          <!-- Dynamically populated from data.js -->
+        </div>
+
+        <!-- Transparent Limitations Section -->
+        <div>
+          <h3 style="font-size: 18px; font-weight: 650; margin-bottom: var(--space-md); color: var(--text-primary);">
+            Current Limitations
+          </h3>
+          <div class="limitations-grid" id="limitations-container">
+            <!-- Dynamically populated from data.js -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- 8. LIVE SYSTEM STATUS & START LIVE DEMO CTA -->
+    <section class="section" style="border-bottom: none; padding-bottom: var(--space-4xl);">
+      <div class="container">
+        
+        <!-- Compact Status Bar -->
+        <div class="system-status-bar">
+          <div class="status-items">
+            <div class="status-entry">
+              <span class="status-key">Model Status:</span>
+              <span class="status-val online">● ONLINE</span>
+            </div>
+            <div class="status-entry">
+              <span class="status-key">Inference Engine:</span>
+              <span class="status-val">READY</span>
+            </div>
+            <div class="status-entry">
+              <span class="status-key">Architecture:</span>
+              <span class="status-val">DUAL ENSEMBLE (EFFNETV2-S DEX + HYBRID)</span>
+            </div>
+            <div class="status-entry">
+              <span class="status-key">Output:</span>
+              <span class="status-val">PREDICTED AGE + AGE GROUP</span>
+            </div>
+          </div>
+          <div style="font-family: var(--font-family-mono); font-size: 11px; color: var(--text-muted);">
+            CUDA GPU ACCELERATED
+          </div>
+        </div>
+
+        <!-- Prominent Live Demo CTA Box -->
+        <div class="cta-box">
+          <h2 class="cta-title">Ready to test the model?</h2>
+          <p class="cta-subtitle">
+            Upload a face image or use your camera to generate real-time age prediction using the Dual Ensemble (Model A DEX + Model B Hybrid with 2-View Mirror TTA).
+          </p>
+          <button class="btn btn-primary btn-lg" data-route="/demo">
+            START LIVE DEMO →
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- ========================================================================= -->
+  <!-- MINIMAL RESEARCH FOOTER                                                  -->
+  <!-- ========================================================================= -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>AGE-X</strong> • AI Facial Age Prediction Research Console • v3.3.0
+      </div>
+      <div class="footer-nav">
+        <a href="#overview">Model</a>
+        <a href="#dataset">Dataset</a>
+        <a href="#tournament">Experiments</a>
+        <a href="#architecture">Architecture</a>
+        <a href="demo.html" style="color: var(--accent-primary);">Live Demo</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script type="module" src="js/app.js"></script>
+
+</body>
+</html>

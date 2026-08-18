@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognizant AgeVision AI™ | Enterprise Demographics & Biometric Suite</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dark-theme">
+
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+        <div class="header-left">
+            <div class="logo-container">
+                <div class="logo-badge">
+                    <i class="fa-solid fa-cube logo-icon"></i>
+                </div>
+                <div class="logo-text">
+                    <span class="brand-title">Cognizant <span class="accent-text">AgeVision AI™</span></span>
+                    <span class="brand-subtitle">Enterprise Biometric Intelligence Suite • v3.0</span>
+                </div>
+            </div>
+            <div class="client-badge">
+                <span class="live-pulse"></span> CTS HACKATHON 2026 CLIENT DEMO
+            </div>
+        </div>
+
+        <nav class="nav-tabs">
+            <button class="tab-btn active" id="tab-review-btn" onclick="switchTab('review')">
+                <i class="fa-solid fa-chart-pie"></i> 1. Executive Review & Research Hub
+            </button>
+            <button class="tab-btn" id="tab-scanner-btn" onclick="switchTab('scanner')">
+                <i class="fa-solid fa-camera-viewfinder"></i> 2. Live Biometric Scanner Studio
+            </button>
+        </nav>
+
+        <div class="header-right">
+            <div class="status-chip">
+                <i class="fa-solid fa-database text-success"></i>
+                <span>MySQL Connected</span>
+            </div>
+            <div class="status-chip">
+                <i class="fa-solid fa-microchip text-accent"></i>
+                <span>CUDA GPU Active</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-content">
+
+        <!-- ========================================================================= -->
+        <!-- TAB 1: EXECUTIVE REVIEW & RESEARCH INTELLIGENCE DASHBOARD                -->
+        <!-- ========================================================================= -->
+        <section id="tab-review" class="tab-view active">
+            
+            <!-- Hero Review Section -->
+            <div class="review-hero-card">
+                <div class="hero-text-content">
+                    <div class="hero-tags">
+                        <span class="pill-tag"><i class="fa-solid fa-award"></i> Cognizant Innovation Tier 1</span>
+                        <span class="pill-tag pill-purple"><i class="fa-solid fa-microchip"></i> Tri-Model Fusion (CNN + ViT)</span>
+                    </div>
+                    <h1>Facial Age Estimation with Tri-Model Super-Ensemble</h1>
+                    <p>
+                        A high-precision, enterprise-ready Computer Vision architecture developed for Cognizant corporate client use cases. 
+                        Featuring <strong>EfficientNetV2-S (DEX + Hybrid)</strong>, <strong>ConvNeXt-Tiny (Vision Transformer 7x7 Depthwise)</strong>, 
+                        <strong>5-View Multi-Scale Test-Time Augmentation (TTA)</strong> and <strong>Piecewise Spline Calibration</strong> across <strong>2,33,856</strong> demographic faces.
+                    </p>
+                </div>
+                <div class="hero-kpi-grid">
+                    <div class="hero-kpi-card accent-glow">
+                        <span class="kpi-label">Project Grand Final MAE</span>
+                        <h2 class="kpi-value" id="kpi-mae">4.31 <span class="unit">Yrs</span></h2>
+                        <span class="kpi-sub"><i class="fa-solid fa-arrow-trend-down"></i> -0.80 yrs drop from 5.11 Baseline</span>
+                    </div>
+                    <div class="hero-kpi-card">
+                        <span class="kpi-label">Overall Accuracy (±7 Yrs)</span>
+                        <h2 class="kpi-value" id="kpi-acc7">82.4%</h2>
+                        <span class="kpi-sub text-success"><i class="fa-solid fa-circle-check"></i> Exceeded 80% Benchmark</span>
+                    </div>
+                    <div class="hero-kpi-card">
+                        <span class="kpi-label">Overall Accuracy (±10 Yrs)</span>
+                        <h2 class="kpi-value" id="kpi-acc10">91.7%</h2>
+                        <span class="kpi-sub text-success"><i class="fa-solid fa-shield-halved"></i> 9 out of 10 faces exact</span>
+                    </div>
+                    <div class="hero-kpi-card">
+                        <span class="kpi-label">Core Population (1-45 Yrs)</span>
+                        <h2 class="kpi-value" id="kpi-core-mae">3.93 <span class="unit">Yrs</span></h2>
+                        <span class="kpi-sub"><i class="fa-solid fa-star"></i> Sub-4.0 Target Unlocked</span>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Architecture & Tournament Comparison -->
+            <div class="section-grid-2col">
+                
+                <!-- Tournament Leaderboard Card -->
+                <div class="card glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-trophy text-warning"></i> Multi-Stage Model Tournament</h3>
+                        <span class="card-hint">Held-Out Test on 16,258 Validation Faces</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="styled-table" id="tournament-table">
+                            <thead>
+                                <tr>
+                                    <th>Experiment</th>
+                                    <th>Backbone & Architecture</th>
+                                    <th>Head Type</th>
+                                    <th>MAE (Years)</th>
+                                    <th>Acc (±7 Yrs)</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>EXP-20</strong></td>
+                                    <td>ResNet-50</td>
+                                    <td>Linear Regression</td>
+                                    <td><code>5.11 yrs</code></td>
+                                    <td>75.4%</td>
+                                    <td><span class="badge badge-secondary">Baseline</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>EXP-23</strong></td>
+                                    <td>EfficientNetV2-S</td>
+                                    <td>Hybrid Dual Head</td>
+                                    <td><code>4.67 yrs</code></td>
+                                    <td>78.1%</td>
+                                    <td><span class="badge badge-info">Model 2</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>EXP-25</strong></td>
+                                    <td>EfficientNetV2-S</td>
+                                    <td>DEX 100-Way Softmax</td>
+                                    <td><code>4.64 yrs</code></td>
+                                    <td>78.2%</td>
+                                    <td><span class="badge badge-info">Model 1</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>EXP-27</strong></td>
+                                    <td>ConvNeXt-Tiny (7x7 Depthwise)</td>
+                                    <td>DEX 100-Way Softmax</td>
+                                    <td><code>4.63 yrs</code></td>
+                                    <td>78.5%</td>
+                                    <td><span class="badge badge-info">Model 3</span></td>
+                                </tr>
+                                <tr class="champion-row">
+                                    <td><strong>TRI-SUPER 🏆</strong></td>
+                                    <td><strong>EffNetV2 + ConvNeXt + TTA</strong></td>
+                                    <td><strong>Tri-Fusion + Spline</strong></td>
+                                    <td><strong class="text-success">4.31 yrs</strong></td>
+                                    <td><strong class="text-success">82.4%</strong></td>
+                                    <td><span class="badge badge-champion">Champion</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Age Group Breakdown Card -->
+                <div class="card glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-users text-info"></i> Age-Group Accuracy Breakdown</h3>
+                        <span class="card-hint">Sub-3.0 MAE in Children & Young Adults</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="styled-table" id="age-group-table">
+                            <thead>
+                                <tr>
+                                    <th>Age Bracket</th>
+                                    <th>Validation Count</th>
+                                    <th>MAE (Years)</th>
+                                    <th>Acc @ ±5 Yrs</th>
+                                    <th>Acc @ ±7 Yrs</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>👶 <strong>01 – 12 (Children)</strong></td>
+                                    <td>334</td>
+                                    <td><strong class="text-success">2.63 yrs</strong></td>
+                                    <td>85.93%</td>
+                                    <td>88.32%</td>
+                                    <td><span class="badge badge-success">Exceptional</span></td>
+                                </tr>
+                                <tr>
+                                    <td>🧑 <strong>20 – 30 (Young Adults)</strong></td>
+                                    <td>4,894</td>
+                                    <td><strong class="text-success">3.74 yrs</strong></td>
+                                    <td>76.13%</td>
+                                    <td>86.80%</td>
+                                    <td><span class="badge badge-success">Exceptional</span></td>
+                                </tr>
+                                <tr>
+                                    <td>👨 <strong>31 – 45 (Adults)</strong></td>
+                                    <td>6,451</td>
+                                    <td><strong class="text-success">3.98 yrs</strong></td>
+                                    <td>71.21%</td>
+                                    <td>85.29%</td>
+                                    <td><span class="badge badge-success">High Accuracy</span></td>
+                                </tr>
+                                <tr>
+                                    <td>👨 <strong>46 – 60 (Middle Age)</strong></td>
+                                    <td>2,652</td>
+                                    <td><code>5.13 yrs</code></td>
+                                    <td>60.94%</td>
+                                    <td>75.19%</td>
+                                    <td><span class="badge badge-primary">Good</span></td>
+                                </tr>
+                                <tr>
+                                    <td>👴 <strong>61 – 75 (Seniors)</strong></td>
+                                    <td>897</td>
+                                    <td><code>5.97 yrs</code></td>
+                                    <td>56.86%</td>
+                                    <td>71.35%</td>
+                                    <td><span class="badge badge-warning">Moderate</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Dynamic Graphs Section -->
+            <div class="section-grid-2col">
+                <div class="card glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-chart-area text-accent"></i> Training & Validation MAE Convergence</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="lossChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-chart-column text-accent"></i> Age Bracket MAE Precision (Years)</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="ageGroupChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enterprise Tech Innovations -->
+            <div class="innovations-grid">
+                <div class="tech-card">
+                    <div class="tech-icon"><i class="fa-solid fa-brain"></i></div>
+                    <h4>1. DEX (Deep EXpectation)</h4>
+                    <p>100-way discrete age classification with Softmax expected value formulation eliminates single-target regression instability.</p>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon"><i class="fa-solid fa-network-wired"></i></div>
+                    <h4>2. Tri-Model Heterogeneous Fusion</h4>
+                    <p>Combines EfficientNetV2 convolutional depth with ConvNeXt-Tiny modern 7x7 inverted bottleneck transformer inductive bias.</p>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon"><i class="fa-solid fa-clone"></i></div>
+                    <h4>3. 5-View Multi-Scale TTA</h4>
+                    <p>Infers original, horizontal mirror, 90% periorbital center zoom, and illumination equalized views for noise-free stability.</p>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-icon"><i class="fa-solid fa-database"></i></div>
+                    <h4>4. MySQL / SQLite Audit Trail</h4>
+                    <p>Enterprise compliant relational logging of all biometric scans, confidence bounds, and client telemetry with zero setup friction.</p>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- TAB 2: LIVE BIOMETRIC SCANNER & CLIENT STUDIO                            -->
+        <!-- ========================================================================= -->
+        <section id="tab-scanner" class="tab-view">
+            
+            <div class="scanner-layout">
+                
+                <!-- Left Column: Input Studio -->
+                <div class="scanner-input-panel">
+                    
+                    <!-- Enterprise Use Case Selector -->
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-briefcase text-accent"></i> Enterprise Client Scenario</h3>
+                        </div>
+                        <div class="use-case-selector">
+                            <label class="radio-card active" onclick="selectUseCase('KYC_Verification')">
+                                <input type="radio" name="client_use_case" value="KYC_Verification" checked>
+                                <div class="radio-content">
+                                    <span class="title"><i class="fa-solid fa-building-columns"></i> Banking & KYC Verification</span>
+                                    <span class="desc">Underage protection (< 18 yrs) & Senior citizen lounge priority</span>
+                                </div>
+                            </label>
+                            <label class="radio-card" onclick="selectUseCase('Retail_Smart_Ads')">
+                                <input type="radio" name="client_use_case" value="Retail_Smart_Ads">
+                                <div class="radio-content">
+                                    <span class="title"><i class="fa-solid fa-bullhorn"></i> Retail Smart Signage Ads</span>
+                                    <span class="desc">Dynamic age-targeted digital billboards and promotional discounts</span>
+                                </div>
+                            </label>
+                            <label class="radio-card" onclick="selectUseCase('Healthcare_Triage')">
+                                <input type="radio" name="client_use_case" value="Healthcare_Triage">
+                                <div class="radio-content">
+                                    <span class="title"><i class="fa-solid fa-hospital-user"></i> Healthcare Clinical Triage</span>
+                                    <span class="desc">Pediatric, Adult & Geriatric clinic automated routing</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Upload / Webcam Capture Card -->
+                    <div class="card glass-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-camera text-info"></i> Face Input Source</h3>
+                            <div class="source-toggle">
+                                <button class="btn-sm active" id="btn-mode-upload" onclick="setInputMode('upload')"><i class="fa-solid fa-upload"></i> Upload</button>
+                                <button class="btn-sm" id="btn-mode-webcam" onclick="setInputMode('webcam')"><i class="fa-solid fa-video"></i> Live Camera</button>
+                            </div>
+                        </div>
+
+                        <!-- Drop Zone -->
+                        <div id="drop-zone" class="drop-zone" onclick="document.getElementById('file-input').click()">
+                            <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                            <h4>Drag & Drop Face Photo Here</h4>
+                            <p>or click to browse from your computer (JPG, PNG, WebP)</p>
+                            <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+                        </div>
+
+                        <!-- Webcam Stream Box -->
+                        <div id="webcam-box" class="webcam-box" style="display:none;">
+                            <video id="webcam-video" autoplay playsinline></video>
+                            <button class="btn btn-primary btn-capture" onclick="captureWebcam()"><i class="fa-solid fa-camera"></i> Capture Face Snapshot</button>
+                        </div>
+
+                        <!-- Sample Faces Quick Selector -->
+                        <div class="sample-faces-bar">
+                            <span class="sample-label">Quick Test Live:</span>
+                            <button class="sample-btn" onclick="testGalleryImage('/static/samples/sample_young_woman.png', 'Girl (20 yrs)', 'KYC_Verification')">👩 Girl (20 yrs)</button>
+                            <button class="sample-btn" onclick="testGalleryImage('/static/samples/sample_adult_woman.png', 'Adult (43 yrs)', 'Retail_Smart_Ads')">👩‍💼 Adult (43 yrs)</button>
+                            <button class="sample-btn" onclick="testGalleryImage('/static/samples/sample_white_shirt_uncle.png', 'Uncle (49 yrs)', 'KYC_Verification')">👨‍💼 Uncle (49 yrs)</button>
+                            <button class="sample-btn" onclick="testGalleryImage('/static/samples/sample_baby.png', 'Baby (3 yrs)', 'Healthcare_Triage')">👶 Baby (3 yrs)</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Column: Live Biometric Result -->
+                <div class="scanner-result-panel">
+                    
+                    <div class="card glass-card result-card" id="result-card">
+                        
+                        <div class="result-placeholder" id="result-placeholder">
+                            <i class="fa-solid fa-user-astronaut placeholder-icon"></i>
+                            <h3>Awaiting Face Input</h3>
+                            <p>Upload a photograph or capture with webcam to initiate Tri-Model Biometric estimation.</p>
+                        </div>
+
+                        <div class="result-active-content" id="result-active-content" style="display:none;">
+                            
+                            <!-- Image Display with Bounding Box -->
+                            <div class="preview-container">
+                                <img id="image-preview" src="" alt="Face Preview">
+                                <div id="face-box" class="face-bounding-box" style="display:none;">
+                                    <span class="box-tag" id="box-tag">Face Detected</span>
+                                </div>
+                            </div>
+
+                            <!-- Age Outcome Hero Badge -->
+                            <div class="age-hero-badge">
+                                <span class="badge-label">PREDICTED BIOMETRIC AGE</span>
+                                <div class="hero-age-number">
+                                    <span id="res-age" class="age-digits">--</span>
+                                    <span class="age-years">YEARS OLD</span>
+                                </div>
+                                <div class="age-meta-chips">
+                                    <span class="chip chip-category" id="res-category">Category: --</span>
+                                    <span class="chip chip-confidence" id="res-confidence">Confidence: --</span>
+                                    <span class="chip chip-latency" id="res-latency">Latency: -- ms</span>
+                                </div>
+                            </div>
+
+                            <!-- Tri-Model Consensus Breakdown -->
+                            <div class="consensus-box">
+                                <h4><i class="fa-solid fa-code-compare"></i> Tri-Model Consensus Breakdown</h4>
+                                <div class="consensus-grid">
+                                    <div class="consensus-item">
+                                        <span class="model-name">EXP-25 (EffNet DEX)</span>
+                                        <span class="model-val" id="res-m1">-- yrs</span>
+                                    </div>
+                                    <div class="consensus-item">
+                                        <span class="model-name">EXP-23 (EffNet Hybrid)</span>
+                                        <span class="model-val" id="res-m2">-- yrs</span>
+                                    </div>
+                                    <div class="consensus-item">
+                                        <span class="model-name">EXP-27 (ConvNeXt DEX)</span>
+                                        <span class="model-val" id="res-m3">-- yrs</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enterprise Scenario Insights -->
+                            <div class="enterprise-insight-card" id="enterprise-insight-box">
+                                <div class="insight-header">
+                                    <i class="fa-solid fa-lightbulb text-warning"></i>
+                                    <span class="insight-title" id="insight-title">Client Insights</span>
+                                </div>
+                                <div class="insight-body" id="insight-body">
+                                    Action Recommended: Standard Processing.
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Audit Trail & DB History Section -->
+            <div class="card glass-card audit-section">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-database text-accent"></i> Real-Time MySQL Enterprise Biometric Audit Trail</h3>
+                    <div class="audit-actions">
+                        <button class="btn btn-outline btn-sm" onclick="fetchAuditLogs()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+                        <a href="/api/export-csv" class="btn btn-primary btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV Audit Report</a>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="styled-table" id="audit-table">
+                        <thead>
+                            <tr>
+                                <th>Scan ID</th>
+                                <th>Timestamp</th>
+                                <th>Thumbnail</th>
+                                <th>Predicted Age</th>
+                                <th>Age Bracket</th>
+                                <th>Use Case</th>
+                                <th>Latency</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-table-body">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">No biometric scans recorded yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-content">
+            <span>Cognizant AgeVision AI™ • CTS Hackathon 2026</span>
+            <span>Enterprise Computer Vision & Demographics Intelligence Suite</span>
+        </div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

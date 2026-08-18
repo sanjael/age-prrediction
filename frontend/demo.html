@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGE-X | Live Biometric Age Prediction Studio</title>
+  <meta name="description" content="Real-time facial age estimation using Dual Ensemble (EfficientNetV2-S DEX + Hybrid Head) with 2-View Mirror TTA.">
+  
+  <!-- Modern Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- TensorFlow.js & BlazeFace Real-Time Face Detection Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+
+  <!-- Strict 50/30/20 Design System CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="demo-page">
+
+  <!-- ========================================================================= -->
+  <!-- TOP BAR & STATUS                                                          -->
+  <!-- ========================================================================= -->
+  <header class="site-header">
+    <div class="container header-inner">
+      
+      <!-- Brand & Meta -->
+      <div class="brand-wrapper">
+        <div class="brand-badge">AX</div>
+        <div class="brand-meta">
+          <div class="brand-title">
+            <span class="brand-accent">AGE-X</span> Live Prediction Studio
+          </div>
+          <div class="brand-subtitle">Dual Ensemble Inference Engine • DEX + Hybrid Head</div>
+        </div>
+      </div>
+
+      <!-- Navigation & Mode Indicator -->
+      <div class="header-actions">
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span id="backend-status-text">DUAL ENSEMBLE READY</span>
+        </div>
+        <a href="index.html" class="btn btn-outline">
+          ← RESEARCH DASHBOARD
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN STUDIO INTERFACE (2-COLUMN INTERACTION & INFERENCE)                 -->
+  <!-- ========================================================================= -->
+  <main class="studio-main container">
+    
+    <!-- Studio Header -->
+    <div class="studio-header">
+      <div>
+        <div class="badge-research">
+          <span>●</span> 2-MODEL SUPER ENSEMBLE ACTIVE
+        </div>
+        <h1 class="studio-title">Facial Age Estimation Studio</h1>
+        <p class="studio-subtitle">
+          Real-time demographic age prediction powered by Model A (DEX Head) and Model B (Hybrid Head) with 2-View Mirror Test-Time Augmentation.
+        </p>
+      </div>
+
+      <!-- Mode Selector Switch -->
+      <div class="mode-toggle-group">
+        <button class="mode-btn active" id="btn-mode-camera" onclick="switchInputMode('camera')">
+          <span class="mode-icon">📷</span> Live Webcamera
+        </button>
+        <button class="mode-btn" id="btn-mode-upload" onclick="switchInputMode('upload')">
+          <span class="mode-icon">📁</span> Upload Image
+        </button>
+      </div>
+    </div>
+
+    <!-- Studio Grid (Left: Camera/Upload Studio | Right: Prediction Output & Analysis) -->
+    <div class="studio-grid">
+      
+      <!-- ========================================== -->
+      <!-- LEFT COLUMN: INPUT SOURCES                -->
+      <!-- ========================================== -->
+      <div class="studio-input-col">
+        
+        <!-- 1. Live Webcamera Panel -->
+        <div class="studio-card" id="panel-webcam">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">Live Video Stream</h3>
+              <p class="card-desc">Position your face within the frame for real-time inference.</p>
+            </div>
+            <div class="badge-tag" id="cam-fps-badge">FPS: 30</div>
+          </div>
+
+          <!-- Video Viewport -->
+          <div class="viewport-box">
+            <video id="webcam-video" autoplay playsinline muted></video>
+            <canvas id="overlay-canvas"></canvas>
+            
+            <!-- Scan Overlay Animation -->
+            <div class="scanner-laser" id="scanner-laser"></div>
+            
+            <!-- Placeholder when camera is off -->
+            <div class="viewport-placeholder" id="camera-placeholder">
+              <div class="placeholder-icon">📷</div>
+              <p>Camera Stream Paused</p>
+              <button class="btn btn-primary" id="btn-start-cam" onclick="startWebcam()">
+                Start Webcamera
+              </button>
+            </div>
+          </div>
+
+          <!-- Camera Controls -->
+          <div class="viewport-controls" style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-outline btn-sm" id="btn-toggle-cam" onclick="toggleWebcam()">
+              Pause Camera
+            </button>
+            <button class="btn btn-outline btn-sm" id="btn-scan-again" onclick="resetAndScanAgain()" style="display: none; background: #1B1F25; color: #F5B942; border-color: #F5B942;">
+              🔄 Scan Again
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-capture-now" onclick="captureAndPredict()" style="min-width: 170px;">
+              📸 Capture Snapshot
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Upload Image Panel -->
+        <div class="studio-card" id="panel-upload" style="display: none;">
+          <div class="card-header-row">
+            <div>
+              <h3 class="card-title">Upload Face Image</h3>
+              <p class="card-desc">Supports JPG, PNG, WEBP with single or frontal face views.</p>
+            </div>
+            <span class="badge-tag">320x320 Normalized</span>
+          </div>
+
+          <!-- Drag and Drop Dropzone -->
+          <div class="dropzone-box" id="dropzone" onclick="document.getElementById('file-input').click()">
+            <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+            <div class="dropzone-inner">
+              <div class="dropzone-icon">📁</div>
+              <p class="dropzone-prompt"><strong>Click to browse</strong> or drag & drop face photo here</p>
+              <span class="dropzone-note">High resolution frontal portraits yield optimal accuracy</span>
+            </div>
+          </div>
+
+          <!-- Uploaded Preview Box -->
+          <div class="preview-box" id="upload-preview-box" style="display: none;">
+            <img id="upload-preview-img" alt="Uploaded Face Preview">
+            <button class="btn btn-outline btn-sm" onclick="clearUpload()">Remove Image</button>
+          </div>
+
+          <!-- Quick Sample Faces Gallery -->
+          <div class="sample-gallery-section">
+            <div class="sample-header">
+              <span class="sample-title">Quick Test Demographic Samples:</span>
+            </div>
+            <div class="sample-grid">
+              <button class="sample-card" onclick="loadSampleFace('child')">
+                <span class="sample-avatar">👶</span>
+                <div class="sample-meta">
+                  <span class="sample-cohort">Child</span>
+                  <span class="sample-true">Target ~8 yrs</span>
+                </div>
+              </button>
+              <button class="sample-card" onclick="loadSampleFace('teen')">
+                <span class="sample-avatar">🧑</span>
+                <div class="sample-meta">
+                  <span class="sample-cohort">Teen</span>
+                  <span class="sample-true">Target ~17 yrs</span>
+                </div>
+              </button>
+              <button class="sample-card" onclick="loadSampleFace('young-adult')">
+                <span class="sample-avatar">👨</span>
+                <div class="sample-meta">
+                  <span class="sample-cohort">Young Adult</span>
+                  <span class="sample-true">Target ~26 yrs</span>
+                </div>
+              </button>
+              <button class="sample-card" onclick="loadSampleFace('adult')">
+                <span class="sample-avatar">👩</span>
+                <div class="sample-meta">
+                  <span class="sample-cohort">Adult</span>
+                  <span class="sample-true">Target ~42 yrs</span>
+                </div>
+              </button>
+              <button class="sample-card" onclick="loadSampleFace('senior')">
+                <span class="sample-avatar">👴</span>
+                <div class="sample-meta">
+                  <span class="sample-cohort">Senior</span>
+                  <span class="sample-true">Target ~68 yrs</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inference Configuration Bar -->
+        <div class="config-bar">
+          <div class="config-item">
+            <span class="config-key">Resolution:</span>
+            <span class="config-val">320 × 320 px</span>
+          </div>
+          <div class="config-item">
+            <span class="config-key">TTA Mode:</span>
+            <span class="config-val">2-View Mirror (Orig + Flip)</span>
+          </div>
+          <div class="config-item">
+            <span class="config-key">Backend API:</span>
+            <span class="config-val" id="api-endpoint-label">Django / HuggingFace</span>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- ========================================== -->
+      <!-- RIGHT COLUMN: PREDICTION RESULTS & AUDIT  -->
+      <!-- ========================================== -->
+      <div class="studio-output-col">
+        
+        <!-- Main Result Card -->
+        <div class="studio-card result-card">
+          
+          <div class="card-header-row">
+            <div>
+              <span class="section-tag">FINAL OUTPUT</span>
+              <h2 class="card-title" style="font-size: 20px;">Predicted Demographics</h2>
+            </div>
+            <div class="badge-tag badge-champion" id="result-status-tag">READY</div>
+          </div>
+
+          <!-- Main Result Display -->
+          <div class="result-hero-box">
+            
+            <!-- Left: Predicted Age Callout -->
+            <div class="result-age-block">
+              <span class="result-label">FINAL PREDICTED AGE</span>
+              <div class="result-age-val">
+                <span id="out-age-value">--.-</span>
+                <span class="result-age-unit">years</span>
+              </div>
+              <div class="result-cohort-badge" id="out-cohort-badge">
+                Awaiting Face Input...
+              </div>
+            </div>
+
+            <!-- Right: Detected Face Crop Preview -->
+            <div class="detected-face-preview-block" id="detected-face-preview-block" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0B0D10; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; min-width: 96px;">
+              <img id="out-face-thumb" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='%237C8796'%3E%3Crect width='80' height='80' fill='%2315181D'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='10' fill='%237C8796'%3ENo Face%3C/text%3E%3C/svg%3E" alt="Cropped Face" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #10B981;">
+              <span style="font-size: 10px; color: #10B981; font-family: var(--font-family-mono); margin-top: 4px;">CROPPED FACE</span>
+            </div>
+
+          </div>
+
+          <!-- Dual Model Prediction Sub-Scores -->
+          <div class="models-breakdown-grid">
+            
+            <!-- Model A (DEX Head) -->
+            <div class="sub-model-card">
+              <div class="sub-model-header">
+                <span class="sub-model-tag">Model A</span>
+                <span class="sub-model-mae">MAE: 4.64y</span>
+              </div>
+              <div class="sub-model-name">EfficientNetV2-S DEX Head</div>
+              <div class="sub-model-val" id="out-model-a">--.- <small>yrs</small></div>
+              <div class="sub-model-meta">100-Way Softmax Expected Sum</div>
+            </div>
+
+            <!-- Model B (Hybrid Head) -->
+            <div class="sub-model-card">
+              <div class="sub-model-header">
+                <span class="sub-model-tag" style="color: #60A5FA;">Model B</span>
+                <span class="sub-model-mae">MAE: 4.67y</span>
+              </div>
+              <div class="sub-model-name">EfficientNetV2-S Hybrid Head</div>
+              <div class="sub-model-val" id="out-model-b">--.- <small>yrs</small></div>
+              <div class="sub-model-meta">Multi-Task Categorical Anchor</div>
+            </div>
+
+          </div>
+
+          <!-- Prediction Tolerance Bounds -->
+          <div class="tolerance-bounds-box">
+            <div class="tolerance-bounds-header">
+              <span class="tb-title">Expected Demographic Tolerance Margin</span>
+              <span class="tb-val" id="out-tolerance-range">±3.0 Yrs Margin</span>
+            </div>
+            
+            <div class="tolerance-stepped-grid">
+              <div class="t-step-item active">
+                <span class="t-step-label">±3 Years Bound</span>
+                <span class="t-step-bound" id="out-bound-3">-- – -- yrs</span>
+                <span class="t-step-pct">48.8% exact</span>
+              </div>
+              <div class="t-step-item active">
+                <span class="t-step-label">±5 Years Bound</span>
+                <span class="t-step-bound" id="out-bound-5">-- – -- yrs</span>
+                <span class="t-step-pct">67.0% industrial</span>
+              </div>
+              <div class="t-step-item active">
+                <span class="t-step-label">±7 Years Bound</span>
+                <span class="t-step-bound" id="out-bound-7">-- – -- yrs</span>
+                <span class="t-step-pct">82.0% benchmark</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inference Telemetry & Latency -->
+          <div class="telemetry-bar">
+            <div class="telemetry-item">
+              <span class="t-key">Latency:</span>
+              <span class="t-val" id="out-latency">~28 ms</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="t-key">Model Disagreement:</span>
+              <span class="t-val" id="out-disagreement">0.0 yrs</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="t-key">Mirror TTA:</span>
+              <span class="t-val" style="color: #10B981;">Synchronized</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Recent Audit Log History -->
+        <div class="studio-card" style="margin-top: var(--space-lg);">
+          <div class="card-header-row">
+            <h3 class="card-title">Session Audit Logs</h3>
+            <button class="btn-sm btn-outline" onclick="clearLogs()">Clear</button>
+          </div>
+          
+          <div class="audit-log-list" id="audit-logs-container">
+            <div class="audit-log-empty">No inference requests logged yet in this session.</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MINIMAL STUDIO FOOTER                                                     -->
+  <!-- ========================================================================= -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>AGE-X</strong> • AI Facial Age Prediction Live Studio • Hugging Face / Django Backend
+      </div>
+      <div class="footer-nav">
+        <a href="index.html">Research Dashboard</a>
+        <a href="demo.html" style="color: var(--accent-primary);">Live Prediction Studio</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Studio Scripts -->
+  <script src="js/demo.js"></script>
+
+</body>
+</html>

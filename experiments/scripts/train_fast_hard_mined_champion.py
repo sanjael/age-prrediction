@@ -1,0 +1,298 @@
+"""
+train_fast_hard_mined_champion.py
+Fast High-Impact Targeted Fine-Tuning:
+Ages 1-12 and 20-35 SKIPPED.
+Targeted Focus on: Teens (13-19) & Older Cohorts (36-100).
+"""
+import os
+import sys
+import time
+import argparse
+import pandas as pd
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+import torchvision.transforms as T
+from PIL import Image
+from typing import Dict
+
+from models import AgeModel
+
+IMAGENET_MEAN = [0.485, 0.456, 0.406]
+IMAGENET_STD = [0.229, 0.224, 0.225]
+
+def get_train_transforms(img_size: int = 320):
+    return T.Compose([
+        T.Resize((int(img_size * 1.1), int(img_size * 1.1))),
+        T.RandomCrop((img_size, img_size)),
+        T.RandomHorizontalFlip(p=0.5),
+        T.RandomRotation(degrees=10),
+        T.ColorJitter(brightness=0.15, contrast=0.15, saturation=0.10),
+        T.ToTensor(),
+        T.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
+    ])
+
+def get_eval_transforms(img_size: int = 320):
+    tf_orig = T.Compose([
+        T.Resize((img_size, img_size)),
+        T.ToTensor(),
+        T.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
+    ])
+    tf_flip = T.Compose([
+        T.Resize((img_size, img_size)),
+        T.RandomHorizontalFlip(p=1.0),
+        T.ToTensor(),
+        T.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
+    ])
+    return tf_orig, tf_flip
+
+class FastAgeDataset(Dataset):
+    def __init__(self, df: pd.DataFrame, transform=None):
+        self.df = df.reset_index(drop=True)
+        self.transform = transform
+        self.filepaths = self.df["filepath"].values
+        self.ages = self.df["age"].values.astype(np.float32)
+
+    def __len__(self):
+        return len(self.filepaths)
+
+    def __getitem__(self, idx):
+        path = self.filepaths[idx]
+        age = self.ages[idx]
+        try:
+            img = Image.open(path).convert("RGB")
+        except Exception:
+            img = Image.new("RGB", (320, 320), (0, 0, 0))
+            
+        if self.transform:
+            img = self.transform(img)
+            
+        return img, torch.tensor(age, dtype=torch.float32)
+
+def generate_gaussian_labels(ages: torch.Tensor, num_classes: int = 100, sigma: float = 2.0, device="cuda") -> torch.Tensor:
+    bins = torch.arange(1, num_classes + 1, dtype=torch.float32, device=device).unsqueeze(0)
+    ages = ages.unsqueeze(1).to(device)
+    dist_sq = (bins - ages) ** 2
+    probs = torch.exp(-dist_sq / (2.0 * (sigma ** 2)))
+    return probs / torch.sum(probs, dim=-1, keepdim=True)
+
+def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+    errors = np.abs(y_true - y_pred)
+    mae = float(np.mean(errors))
+    rmse = float(np.sqrt(np.mean(errors ** 2)))
+    acc_1 = float(np.mean(errors <= 1.0) * 100.0)
+    acc_3 = float(np.mean(errors <= 3.0) * 100.0)
+    acc_5 = float(np.mean(errors <= 5.0) * 100.0)
+    acc_10 = float(np.mean(errors <= 10.0) * 100.0)
+    return {
+        "mae": round(mae, 3),
+        "rmse": round(rmse, 3),
+        "acc_1": round(acc_1, 2),
+        "acc_3": round(acc_3, 2),
+        "acc_5": round(acc_5, 2),
+        "acc_10": round(acc_10, 2)
+    }
+
+def print_age_breakdown(y_true: np.ndarray, y_pred: np.ndarray, title: str = "VALIDATION BREAKDOWN"):
+    df = pd.DataFrame({"target": y_true, "pred": y_pred})
+    df["error"] = np.abs(df["pred"] - df["target"])
+    df["acc_3"] = df["error"] <= 3.0
+    df["acc_5"] = df["error"] <= 5.0
+    
+    bins = [0, 12, 19, 35, 60, 75, 105]
+    labels = ['1-12 (Kids)', '13-19 (Teens)', '20-35 (Young Adults)', '36-60 (Middle Age)', '61-75 (Seniors)', '76-100 (Elderly)']
+    df["bracket"] = pd.cut(df["target"], bins=bins, labels=labels)
+    
+    res = df.groupby("bracket", observed=False).agg(
+        count=("error", "count"),
+        mae=("error", "mean"),
+        rmse=("error", lambda x: np.sqrt(np.mean(x**2))),
+        acc_3=("acc_3", lambda x: np.mean(x) * 100.0),
+        acc_5=("acc_5", lambda x: np.mean(x) * 100.0)
+    ).round(3)
+    
+    print(f"\n--- {title} ---")
+    print(res.to_string())
+    print("-" * 65 + "\n")
+
+def main():
+    parser = argparse.ArgumentParser(description="Targeted High-Error Fine-Tuning (Skipping 1-12 & 20-35)")
+    parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs")
+    parser.add_argument("--batch_size", type=int, default=16, help="Batch size")
+    parser.add_argument("--accum_steps", type=int, default=2, help="Gradient accumulation steps")
+    parser.add_argument("--lr_head", type=float, default=1.5e-4, help="Learning rate for DEX head")
+    parser.add_argument("--lr_backbone", type=float, default=1.5e-5, help="Learning rate for backbone")
+    args = parser.parse_args()
+
+    out_dir = "outputs/exp29_fast_high_error_champion"
+    os.makedirs(out_dir, exist_ok=True)
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("=" * 85)
+    print(" [*] TARGETED FINE-TUNING: AGES 1-12 & 20-35 SKIPPED")
+    print(" [*] Training strictly on Teens (13-19) and Adults/Seniors (36-100)")
+    print(f" [*] Device: {device} | Output Directory: {out_dir}")
+    print("=" * 85)
+    
+    # 1. Load Dataset Manifest
+    manifest_path = "manifest_master_imdb_augmented.csv"
+    if not os.path.exists(manifest_path):
+        manifest_path = "manifest_p2_320_plus_utkface.csv"
+        
+    df = pd.read_csv(manifest_path)
+    train_full = df[df["split"] == "train"].reset_index(drop=True)
+    val_df = df[df["split"] == "val"].reset_index(drop=True)
+    
+    # FILTER: Exclude 1-12 and 20-35
+    mask_targeted = ((train_full["age"] >= 13) & (train_full["age"] <= 19)) | ((train_full["age"] >= 36) & (train_full["age"] <= 100))
+    train_targeted = train_full[mask_targeted].sample(frac=1.0, random_state=42).reset_index(drop=True)
+    
+    print(f"[*] Total Filtered Targeted Training Pool: {len(train_targeted):,} images")
+    print(f"    - Teens (13-19)        : {len(train_targeted[(train_targeted['age']>=13) & (train_targeted['age']<=19)]):,} images")
+    print(f"    - Middle Age (36-60)   : {len(train_targeted[(train_targeted['age']>=36) & (train_targeted['age']<=60)]):,} images")
+    print(f"    - Seniors (61-75)      : {len(train_targeted[(train_targeted['age']>=61) & (train_targeted['age']<=75)]):,} images")
+    print(f"    - Elderly (76-100)     : {len(train_targeted[(train_targeted['age']>=76) & (train_targeted['age']<=100)]):,} images")
+    print(f"    - Skipped 1-12 & 20-35 : {len(train_full) - len(train_targeted):,} images excluded.")
+    print(f"[*] Untouched Validation Pool: {len(val_df):,} images (Full 1-100 benchmark)\n")
+    
+    tf_train = get_train_transforms(320)
+    tf_orig, tf_flip = get_eval_transforms(320)
+    
+    ds_train = FastAgeDataset(train_targeted, transform=tf_train)
+    ds_val_orig = FastAgeDataset(val_df, transform=tf_orig)
+    ds_val_flip = FastAgeDataset(val_df, transform=tf_flip)
+    
+    train_loader = DataLoader(ds_train, batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=True, drop_last=True)
+    val_loader_orig = DataLoader(ds_val_orig, batch_size=args.batch_size * 2, shuffle=False, num_workers=4, pin_memory=True)
+    val_loader_flip = DataLoader(ds_val_flip, batch_size=args.batch_size * 2, shuffle=False, num_workers=4, pin_memory=True)
+    
+    # 2. Instantiate Model with Transfer Learning from Champion EXP-25 (4.64 Model)
+    pretrained_path = "outputs/exp25_effnetv2s_dex_expected_age/best_model.pt"
+    print(f"[*] Initializing Champion 4.64 weights from: {pretrained_path}...")
+    model = AgeModel(backbone_name="tf_efficientnetv2_s", head_type="dex", pretrained=False).to(device)
+    ckpt = torch.load(pretrained_path, map_location=device)
+    model.load_state_dict(ckpt["model_state_dict"])
+    print("[+] Champion weights loaded successfully!")
+    
+    param_groups = model.get_parameter_groups(head_lr=args.lr_head, backbone_lr=args.lr_backbone, weight_decay=1e-4)
+    optimizer = torch.optim.AdamW(param_groups)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
+    scaler = torch.cuda.amp.GradScaler()
+    
+    # 3. Pre-Training Baseline Validation Score
+    model.eval()
+    init_preds, init_targets = [], []
+    print("[*] Running pre-training benchmark validation with 2-View TTA...")
+    with torch.no_grad():
+        for (img_o, ys), (img_f, _) in zip(val_loader_orig, val_loader_flip):
+            img_o = img_o.to(device, non_blocking=True)
+            img_f = img_f.to(device, non_blocking=True)
+            p_o = model(img_o)["pred_age"].cpu().numpy()
+            p_f = model(img_f)["pred_age"].cpu().numpy()
+            p = 0.5 * p_o + 0.5 * p_f
+            init_preds.extend(p.tolist())
+            init_targets.extend(ys.numpy().tolist())
+            
+    m_init = compute_metrics(np.array(init_targets), np.array(init_preds))
+    print(f"[*] PRE-TRAINING BENCHMARK: Full Val MAE = {m_init['mae']:.3f} yrs | RMSE = {m_init['rmse']:.3f} | Acc@+-3 = {m_init['acc_3']}% | Acc@+-5 = {m_init['acc_5']}%")
+    print_age_breakdown(np.array(init_targets), np.array(init_preds), title="PRE-TRAINING BASELINE DEMOGRAPHIC BREAKDOWN")
+    
+    best_val_mae = m_init["mae"]
+    best_metrics = m_init
+    best_epoch = 0
+    save_checkpoint_path = os.path.join(out_dir, "best_model.pt")
+    
+    # 4. Fast Training Loop
+    history = []
+    for epoch in range(1, args.epochs + 1):
+        model.train()
+        total_loss = 0.0
+        train_preds, train_targets = [], []
+        epoch_start = time.time()
+        optimizer.zero_grad(set_to_none=True)
+        
+        for step, (images, ages) in enumerate(train_loader):
+            images = images.to(device, non_blocking=True)
+            ages = ages.to(device, non_blocking=True)
+            target_gaussian = generate_gaussian_labels(ages, num_classes=100, sigma=2.0, device=device)
+            
+            with torch.cuda.amp.autocast():
+                out = model(images)
+                logits = out["logits"]
+                pred_age = out["pred_age"]
+                loss = -(target_gaussian * F.log_softmax(logits, dim=-1)).sum(dim=-1).mean()
+                loss = loss / args.accum_steps
+                
+            scaler.scale(loss).backward()
+            
+            if (step + 1) % args.accum_steps == 0 or (step + 1) == len(train_loader):
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad(set_to_none=True)
+                
+            total_loss += loss.item() * args.accum_steps
+            train_preds.extend(pred_age.detach().cpu().numpy().tolist())
+            train_targets.extend(ages.cpu().numpy().tolist())
+            
+        scheduler.step()
+        epoch_time = time.time() - epoch_start
+        train_m = compute_metrics(np.array(train_targets), np.array(train_preds))
+        
+        # Full validation evaluation with 2-View Mirror Flip TTA
+        model.eval()
+        val_preds, val_targets = [], []
+        with torch.no_grad():
+            for (img_o, ys), (img_f, _) in zip(val_loader_orig, val_loader_flip):
+                img_o = img_o.to(device, non_blocking=True)
+                img_f = img_f.to(device, non_blocking=True)
+                p_o = model(img_o)["pred_age"].cpu().numpy()
+                p_f = model(img_f)["pred_age"].cpu().numpy()
+                p = 0.5 * p_o + 0.5 * p_f
+                val_preds.extend(p.tolist())
+                val_targets.extend(ys.numpy().tolist())
+                
+        val_m = compute_metrics(np.array(val_targets), np.array(val_preds))
+        avg_loss = total_loss / len(train_loader)
+        
+        is_best = val_m["mae"] < best_val_mae
+        if is_best:
+            best_val_mae = val_m["mae"]
+            best_metrics = val_m
+            best_epoch = epoch
+            torch.save({
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "val_mae": best_val_mae,
+                "metrics": best_metrics,
+                "backbone": "tf_efficientnetv2_s",
+                "head": "dex"
+            }, save_checkpoint_path)
+            
+        star = " [*] BEST (NEW RECORD!)" if is_best else ""
+        print(f" Epoch {epoch:02d}/{args.epochs:02d} [{epoch_time:.1f}s] | Loss: {avg_loss:.4f}, Train MAE: {train_m['mae']:.2f} yrs | Val MAE: {val_m['mae']:.3f} yrs, RMSE: {val_m['rmse']:.2f}, Acc@+-3: {val_m['acc_3']}%, Acc@+-5: {val_m['acc_5']}%{star}")
+        print_age_breakdown(np.array(val_targets), np.array(val_preds), title=f"EPOCH {epoch:02d} DEMOGRAPHIC BREAKDOWN")
+        
+        history.append({
+            "epoch": epoch,
+            "train_loss": avg_loss,
+            "train_mae": train_m["mae"],
+            "val_mae": val_m["mae"],
+            "val_rmse": val_m["rmse"],
+            "val_acc_3": val_m["acc_3"],
+            "val_acc_5": val_m["acc_5"],
+            "val_acc_10": val_m["acc_10"],
+            "is_best": is_best
+        })
+        
+    df_hist = pd.DataFrame(history)
+    df_hist.to_csv(os.path.join(out_dir, "training_history.csv"), index=False)
+    
+    print("\n" + "=" * 85)
+    print(f" [RESULT] TRAINING FINISHED! BEST OVERALL VAL MAE: {best_val_mae:.3f} YEARS (Epoch {best_epoch})")
+    print(f" Saved Model Checkpoint: {save_checkpoint_path}")
+    print("=" * 85 + "\n")
+
+if __name__ == "__main__":
+    main()
