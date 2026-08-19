@@ -1,8 +1,8 @@
 """
 server_dual.py
-Master Production Backend with Multi-Cascade CLAHE Face Detection & Hugging Face Inference Integration.
+Master Production Backend with Multi-Cascade CLAHE Face Detection, Skin Color Verification & Hugging Face Inference Integration.
 Integrates:
-  1. Multi-Cascade CLAHE Face Detector & Cropping Engine.
+  1. Multi-Cascade CLAHE Face Detector & YCrCb Skin Verification Engine.
   2. Hugging Face Inference API Client (Sanjayramdata/celingfan).
   3. Local Dual Ensemble PyTorch Model Fallback (CUDA/CPU).
 """
@@ -33,7 +33,7 @@ if WORKSPACE_DIR not in sys.path:
 from predict_dual_ensemble import GlobalDualEnsemble
 from backend.api.hf_client import HuggingFaceInferenceClient
 
-app = FastAPI(title="AGE-X Dual Ensemble Master Inference API", version="4.0.0")
+app = FastAPI(title="AGE-X Dual Ensemble Master Inference API", version="4.5.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -80,10 +80,39 @@ def startup_event():
     except Exception as e:
         print(f"[!] Local Dual Ensemble Note: {e}")
 
+def is_valid_human_face_crop(crop_bgr: np.ndarray) -> bool:
+    """
+    Verifies if candidate face crop contains genuine human skin tone & structure.
+    Rejects ID cards, printed logos, text documents, MRI scans, and inanimate objects.
+    """
+    if crop_bgr is None or crop_bgr.size == 0:
+        return False
+        
+    h, w, _ = crop_bgr.shape
+    if w < 45 or h < 45:
+        return False # Ignore tiny document text emblems
+
+    # 1. YCrCb Human Skin Pixel Masking
+    # Range: Cr in [133, 173], Cb in [77, 127]
+    ycrcb = cv2.cvtColor(crop_bgr, cv2.COLOR_BGR2YCrCb)
+    skin_mask = cv2.inRange(ycrcb, (0, 133, 77), (255, 173, 127))
+    skin_ratio = np.count_nonzero(skin_mask) / (h * w)
+
+    # 2. Canny Edge Density (Text documents & ID card emblems have dense sharp lines > 35%)
+    gray = cv2.cvtColor(crop_bgr, cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(gray, 100, 200)
+    edge_ratio = np.count_nonzero(edges) / (h * w)
+
+    # Real human faces must have >= 10% skin pixels and not be a dense text document (>38% edge ratio)
+    if skin_ratio < 0.10 or edge_ratio > 0.38:
+        return False
+
+    return True
+
 def detect_and_crop_face_cv2(pil_img: Image.Image) -> tuple[Image.Image, bool, str]:
     """
-    High-Sensitivity Face Detection with CLAHE contrast enhancement & Multi-Cascade passes.
-    Handles dim webcam lighting, tilted heads, and shadows.
+    High-Sensitivity Face Detection with CLAHE contrast enhancement, YCrCb skin verification & Multi-Cascade passes.
+    Handles dim webcam lighting, tilted heads, and shadows, while strictly rejecting non-face objects.
     """
     img_np = np.array(pil_img)
     img_bgr = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
@@ -95,18 +124,26 @@ def detect_and_crop_face_cv2(pil_img: Image.Image) -> tuple[Image.Image, bool, s
     detected_faces = []
     
     for c in cascades:
-        faces = c.detectMultiScale(gray, scaleFactor=1.08, minNeighbors=3, minSize=(40, 40))
+        faces = c.detectMultiScale(gray, scaleFactor=1.08, minNeighbors=4, minSize=(50, 50))
         if len(faces) > 0:
             detected_faces = faces
             break
             
-        faces_enh = c.detectMultiScale(gray_enhanced, scaleFactor=1.06, minNeighbors=2, minSize=(35, 35))
+        faces_enh = c.detectMultiScale(gray_enhanced, scaleFactor=1.06, minNeighbors=3, minSize=(45, 45))
         if len(faces_enh) > 0:
             detected_faces = faces_enh
             break
 
-    if len(detected_faces) > 0:
-        largest_face = max(detected_faces, key=lambda f: f[2] * f[3])
+    # Filter detected faces with Skin Verification Check
+    valid_faces = []
+    for f in detected_faces:
+        x, y, w, h = f
+        candidate_crop = img_bgr[max(0, y):min(img_bgr.shape[0], y+h), max(0, x):min(img_bgr.shape[1], x+w)]
+        if is_valid_human_face_crop(candidate_crop):
+            valid_faces.append(f)
+
+    if len(valid_faces) > 0:
+        largest_face = max(valid_faces, key=lambda f: f[2] * f[3])
         x, y, w, h = largest_face
         
         pad_x = int(0.25 * w)
@@ -139,6 +176,7 @@ def detect_and_crop_face_cv2(pil_img: Image.Image) -> tuple[Image.Image, bool, s
         
         return cropped_pil, True, crop_b64
     else:
+        # No valid human face detected -> Return dummy 320x320 and False flag
         w, h = pil_img.size
         crop_size = int(min(w, h) * 0.75)
         left = max(0, (w - crop_size) // 2)
@@ -195,10 +233,10 @@ async def predict_face(request: Request):
     # Auto-orient Exif image
     raw_pil_image = ImageOps.exif_transpose(raw_pil_image)
 
-    # 1. Face Detection and Tight 320x320 Face Cropping
+    # 1. Face Detection and Tight 320x320 Face Cropping with YCrCb Skin Verification
     face_img, face_detected, face_thumb_b64 = detect_and_crop_face_cv2(raw_pil_image)
 
-    # GUARDRAIL: Strict Human Face Validation
+    # GUARDRAIL: Reject Non-Human Face Images (ID cards, logos, documents, MRI, cars, etc.)
     if not face_detected:
         return JSONResponse(status_code=422, content={
             "status": "NO_FACE_DETECTED",
@@ -213,7 +251,6 @@ async def predict_face(request: Request):
         try:
             hf_res = hf_client.predict_image(face_img)
             if hf_res.get("status") == "success" and isinstance(hf_res.get("data"), list):
-                # Format Hugging Face response
                 hf_data = hf_res["data"]
                 if len(hf_data) > 0 and "score" in hf_data[0]:
                     pred_age_val = float(hf_data[0].get("score", 25.0))
