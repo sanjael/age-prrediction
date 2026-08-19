@@ -5,6 +5,8 @@
  *  - Ergonomic, spacious Black Border Face Detection Box.
  *  - Single-shot face capture on detection (freezes on result, no endless recalculations).
  *  - Instant "Scan Again" & "Capture Snapshot" buttons for new scans with fresh live camera frames.
+ */
+
 // Local Backend API Endpoint
 const BACKEND_API_URL = "http://localhost:8000/api/predict";
 
@@ -155,10 +157,10 @@ function startFaceTrackingLoop() {
 
       let detectedFace = null;
 
-      // 1. Detect Face Coordinates
+      // 1. Detect Face Coordinates with high sensitivity
       if (blazefaceModel) {
         try {
-          const preds = await blazefaceModel.estimateFaces(video, false);
+          const preds = await blazefaceModel.estimateFaces(video, false, 0.65);
           if (preds.length > 0) {
             const p = preds[0];
             const start = p.topLeft;
@@ -237,8 +239,15 @@ function startFaceTrackingLoop() {
         ctx.fillStyle = "#F5B942";
         ctx.font = "bold 11px JetBrains Mono, monospace";
         ctx.textAlign = "center";
-        ctx.fillText("POSITION FACE IN BLACK BOX", overlay.width / 2, frameY - 9);
+        ctx.fillText("ALIGN FACE IN BLACK BOX", overlay.width / 2, frameY - 9);
         ctx.textAlign = "left";
+
+        // Auto-capture fallback after 2.5s of camera startup if detector didn't lock
+        const now = performance.now();
+        if (!isScanCompleted && !isInferring && now > (reArmTimestamp + 2000)) {
+          isScanCompleted = true;
+          captureAndPredictAuto(video);
+        }
       }
     }
     requestAnimationFrame(renderFrame);

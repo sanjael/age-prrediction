@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: age-prediction-api
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python backend/server_dual.py
+    envVars:
+      - key: HUGGINGFACE_MODEL_REPO
+        value: Sanjayramdata/celingfan
+      - key: HUGGINGFACE_API_KEY
+        sync: false
