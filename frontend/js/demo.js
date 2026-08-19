@@ -430,6 +430,11 @@ async function executeInference(imageData, sourceName = "Face Input") {
     document.getElementById("out-model-a").innerHTML = `--.- <small>yrs</small>`;
     document.getElementById("out-model-b").innerHTML = `--.- <small>yrs</small>`;
     
+    // Clear out bounds
+    const b3 = document.getElementById("bound-pm3"); if (b3) b3.textContent = "--.- yrs";
+    const b5 = document.getElementById("bound-pm5"); if (b5) b5.textContent = "--.- yrs";
+    const b7 = document.getElementById("bound-pm7"); if (b7) b7.textContent = "--.- yrs";
+
     // Show thumbnail of rejected image
     const thumbImg = document.getElementById("out-face-thumb");
     if (thumbImg && result && result.face_thumbnail) {
