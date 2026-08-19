@@ -198,6 +198,15 @@ async def predict_face(request: Request):
     # 1. Face Detection and Tight 320x320 Face Cropping
     face_img, face_detected, face_thumb_b64 = detect_and_crop_face_cv2(raw_pil_image)
 
+    # GUARDRAIL: Strict Human Face Validation
+    if not face_detected:
+        return JSONResponse(status_code=422, content={
+            "status": "NO_FACE_DETECTED",
+            "error": "⚠️ No human face detected in image. Please upload a clear human face photo.",
+            "face_detected": False,
+            "face_thumbnail": face_thumb_b64
+        })
+
     # 2. Try Hugging Face Inference API if HUGGINGFACE_API_KEY is configured
     hf_result = None
     if hf_client and os.environ.get("HUGGINGFACE_API_KEY"):

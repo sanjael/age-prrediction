@@ -402,6 +402,7 @@ async function executeInference(imageData, sourceName = "Face Input") {
   updateStatusBadge("PROCESSING FACE (CUDA)...");
 
   let result = null;
+  let isNoFaceFound = false;
 
   try {
     const response = await fetch(BACKEND_API_URL, {
@@ -412,6 +413,9 @@ async function executeInference(imageData, sourceName = "Face Input") {
 
     if (response.ok) {
       result = await response.json();
+    } else if (response.status === 422) {
+      isNoFaceFound = true;
+      result = await response.json();
     } else {
       console.warn("Backend error status:", response.status);
     }
@@ -419,9 +423,20 @@ async function executeInference(imageData, sourceName = "Face Input") {
     console.error("Backend connection error:", apiErr);
   }
 
-  if (result && result.predicted_age !== undefined) {
+  if (isNoFaceFound || (result && result.status === "NO_FACE_DETECTED")) {
+    updateStatusBadge("NO HUMAN FACE DETECTED");
+    document.getElementById("out-age-value").textContent = "--.-";
+    document.getElementById("out-cohort-badge").textContent = "⚠️ No Human Face Detected in Image";
+    document.getElementById("out-model-a").innerHTML = `--.- <small>yrs</small>`;
+    document.getElementById("out-model-b").innerHTML = `--.- <small>yrs</small>`;
+    
+    // Show thumbnail of rejected image
+    const thumbImg = document.getElementById("out-face-thumb");
+    if (thumbImg && result && result.face_thumbnail) {
+      thumbImg.src = result.face_thumbnail;
+    }
+  } else if (result && result.predicted_age !== undefined) {
     renderPredictionResult(result, sourceName);
-    // Show "Scan Again" button in camera viewport
     const scanAgainBtn = document.getElementById("btn-scan-again");
     if (scanAgainBtn) {
       scanAgainBtn.style.display = "inline-flex";
