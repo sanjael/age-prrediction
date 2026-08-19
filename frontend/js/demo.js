@@ -453,6 +453,15 @@ async function executeInference(imageData, sourceName = "Face Input") {
  * 10. Render Prediction in UI
  */
 function renderPredictionResult(res, sourceName) {
+  if (res.face_detected === false || res.status === "NO_FACE_DETECTED") {
+    updateStatusBadge("NO HUMAN FACE DETECTED");
+    document.getElementById("out-age-value").textContent = "--.-";
+    document.getElementById("out-cohort-badge").textContent = "⚠️ No Human Face Detected in Image";
+    document.getElementById("out-model-a").innerHTML = `--.- <small>yrs</small>`;
+    document.getElementById("out-model-b").innerHTML = `--.- <small>yrs</small>`;
+    return;
+  }
+
   const age = res.predicted_age;
   const cohort = getAgeCohort(age);
 
