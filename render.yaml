@@ -2,8 +2,8 @@ services:
   - type: web
     name: age-prediction-api
     env: python
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: python backend/server_dual.py
+    buildCommand: pip install -r requirements.txt -r backend/requirements.txt
+    startCommand: uvicorn backend.server_dual:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: HUGGINGFACE_MODEL_REPO
         value: Sanjayramdata/celingfan
