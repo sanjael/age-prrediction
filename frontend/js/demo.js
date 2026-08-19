@@ -423,7 +423,7 @@ async function executeInference(imageData, sourceName = "Face Input") {
     console.error("Backend connection error:", apiErr);
   }
 
-  if (isNoFaceFound || (result && result.status === "NO_FACE_DETECTED")) {
+  if (isNoFaceFound || (result && (result.status === "NO_FACE_DETECTED" || result.face_detected === false))) {
     updateStatusBadge("NO HUMAN FACE DETECTED");
     document.getElementById("out-age-value").textContent = "--.-";
     document.getElementById("out-cohort-badge").textContent = "⚠️ No Human Face Detected in Image";
@@ -435,7 +435,7 @@ async function executeInference(imageData, sourceName = "Face Input") {
     if (thumbImg && result && result.face_thumbnail) {
       thumbImg.src = result.face_thumbnail;
     }
-  } else if (result && result.predicted_age !== undefined) {
+  } else if (result && result.predicted_age !== undefined && result.face_detected === true) {
     renderPredictionResult(result, sourceName);
     const scanAgainBtn = document.getElementById("btn-scan-again");
     if (scanAgainBtn) {
